@@ -18,30 +18,26 @@
 
 #pragma once
 
-#include <f1x/aasdk/USB/IUSBWrapper.hpp>
-#include <f1x/aasdk/USB/IAccessoryModeQueryFactory.hpp>
 #include <f1x/aasdk/USB/IAccessoryModeQueryChain.hpp>
+#include <f1x/aasdk/USB/IAccessoryModeQueryFactory.hpp>
+#include <f1x/aasdk/USB/IUSBWrapper.hpp>
 
-namespace f1x
-{
-namespace aasdk
-{
-namespace usb
-{
-    
+namespace f1x {
+namespace aasdk {
+namespace usb {
+
 class IAccessoryModeQueryFactory;
 
-class AccessoryModeQueryChain: public IAccessoryModeQueryChain, public std::enable_shared_from_this<AccessoryModeQueryChain>, boost::noncopyable
-{
-public:
+class AccessoryModeQueryChain : public IAccessoryModeQueryChain, public std::enable_shared_from_this<AccessoryModeQueryChain>, boost::noncopyable {
+   public:
     AccessoryModeQueryChain(IUSBWrapper& usbWrapper,
-                            boost::asio::io_service& ioService,
+                            boost::asio::io_context& ioService,
                             IAccessoryModeQueryFactory& queryFactory);
 
     void start(DeviceHandle handle, Promise::Pointer promise) override;
     void cancel() override;
-    
-private:
+
+   private:
     using std::enable_shared_from_this<AccessoryModeQueryChain>::shared_from_this;
 
     void startQuery(AccessoryModeQueryType queryType, IUSBEndpoint::Pointer usbEndpoint, IAccessoryModeQuery::Promise::Pointer queryPromise);
@@ -54,15 +50,15 @@ private:
     void uriQueryHandler(IUSBEndpoint::Pointer usbEndpoint);
     void serialQueryHandler(IUSBEndpoint::Pointer usbEndpoint);
     void startQueryHandler(IUSBEndpoint::Pointer usbEndpoint);
-    
+
     IUSBWrapper& usbWrapper_;
-    boost::asio::io_service::strand strand_;
+    boost::asio::io_context::strand strand_;
     IAccessoryModeQueryFactory& queryFactory_;
-    DeviceHandle handle_;    
+    DeviceHandle handle_;
     Promise::Pointer promise_;
     IAccessoryModeQuery::Pointer activeQuery_;
 };
 
-}
-}
-}
+}  // namespace usb
+}  // namespace aasdk
+}  // namespace f1x

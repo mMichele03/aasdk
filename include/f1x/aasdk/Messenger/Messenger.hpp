@@ -19,29 +19,25 @@
 #pragma once
 
 #include <boost/asio.hpp>
-#include <list>
-#include <f1x/aasdk/Messenger/IMessenger.hpp>
-#include <f1x/aasdk/Messenger/IMessageInStream.hpp>
-#include <f1x/aasdk/Messenger/IMessageOutStream.hpp>
 #include <f1x/aasdk/Messenger/ChannelReceiveMessageQueue.hpp>
 #include <f1x/aasdk/Messenger/ChannelReceivePromiseQueue.hpp>
+#include <f1x/aasdk/Messenger/IMessageInStream.hpp>
+#include <f1x/aasdk/Messenger/IMessageOutStream.hpp>
+#include <f1x/aasdk/Messenger/IMessenger.hpp>
+#include <list>
 
-namespace f1x
-{
-namespace aasdk
-{
-namespace messenger
-{
+namespace f1x {
+namespace aasdk {
+namespace messenger {
 
-class Messenger: public IMessenger, public std::enable_shared_from_this<Messenger>, boost::noncopyable
-{
-public:
-    Messenger(boost::asio::io_service& ioService, IMessageInStream::Pointer messageInStream, IMessageOutStream::Pointer messageOutStream);
+class Messenger : public IMessenger, public std::enable_shared_from_this<Messenger>, boost::noncopyable {
+   public:
+    Messenger(boost::asio::io_context& ioService, IMessageInStream::Pointer messageInStream, IMessageOutStream::Pointer messageOutStream);
     void enqueueReceive(ChannelId channelId, ReceivePromise::Pointer promise) override;
     void enqueueSend(Message::Pointer message, SendPromise::Pointer promise) override;
     void stop() override;
 
-private:
+   private:
     using std::enable_shared_from_this<Messenger>::shared_from_this;
     typedef std::list<std::pair<Message::Pointer, SendPromise::Pointer>> ChannelSendQueue;
     void doSend();
@@ -50,8 +46,8 @@ private:
     void rejectReceivePromiseQueue(const error::Error& e);
     void rejectSendPromiseQueue(const error::Error& e);
 
-    boost::asio::io_service::strand receiveStrand_;
-    boost::asio::io_service::strand sendStrand_;
+    boost::asio::io_context::strand receiveStrand_;
+    boost::asio::io_context::strand sendStrand_;
     IMessageInStream::Pointer messageInStream_;
     IMessageOutStream::Pointer messageOutStream_;
 
@@ -60,6 +56,6 @@ private:
     ChannelSendQueue channelSendPromiseQueue_;
 };
 
-}
-}
-}
+}  // namespace messenger
+}  // namespace aasdk
+}  // namespace f1x

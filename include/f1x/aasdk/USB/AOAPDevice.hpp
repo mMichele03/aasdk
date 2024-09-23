@@ -18,31 +18,28 @@
 
 #pragma once
 
-#include <utility>
-#include <boost/asio.hpp>
 #include <libusb.h>
-#include <f1x/aasdk/USB/IUSBWrapper.hpp>
+
+#include <boost/asio.hpp>
 #include <f1x/aasdk/USB/IAOAPDevice.hpp>
+#include <f1x/aasdk/USB/IUSBWrapper.hpp>
+#include <utility>
 
-namespace f1x
-{
-namespace aasdk
-{
-namespace usb
-{
+namespace f1x {
+namespace aasdk {
+namespace usb {
 
-class AOAPDevice: public IAOAPDevice, boost::noncopyable
-{
-public:
-    AOAPDevice(IUSBWrapper& usbWrapper, boost::asio::io_service& ioService, DeviceHandle handle, const libusb_interface_descriptor* interfaceDescriptor);
+class AOAPDevice : public IAOAPDevice, boost::noncopyable {
+   public:
+    AOAPDevice(IUSBWrapper& usbWrapper, boost::asio::io_context& ioService, DeviceHandle handle, const libusb_interface_descriptor* interfaceDescriptor);
     ~AOAPDevice() override;
 
     IUSBEndpoint& getInEndpoint() override;
     IUSBEndpoint& getOutEndpoint() override;
 
-    static IAOAPDevice::Pointer create(IUSBWrapper& usbWrapper, boost::asio::io_service& ioService, DeviceHandle handle);
+    static IAOAPDevice::Pointer create(IUSBWrapper& usbWrapper, boost::asio::io_context& ioService, DeviceHandle handle);
 
-private:
+   private:
     static ConfigDescriptorHandle getConfigDescriptor(IUSBWrapper& usbWrapper, DeviceHandle handle);
     static const libusb_interface* getInterface(const ConfigDescriptorHandle& configDescriptorHandle);
     static const libusb_interface_descriptor* getInterfaceDescriptor(const libusb_interface* interface);
@@ -58,6 +55,6 @@ private:
     static constexpr uint16_t cAOAPWithAdbId = 0x2D01;
 };
 
-}
-}
-}
+}  // namespace usb
+}  // namespace aasdk
+}  // namespace f1x

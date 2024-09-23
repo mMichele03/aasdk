@@ -19,27 +19,23 @@
 #pragma once
 
 #include <f1x/aasdk/Common/Data.hpp>
-#include <f1x/aasdk/Transport/ITransport.hpp>
-#include <f1x/aasdk/Messenger/ICryptor.hpp>
-#include <f1x/aasdk/Messenger/IMessageOutStream.hpp>
 #include <f1x/aasdk/Messenger/FrameHeader.hpp>
 #include <f1x/aasdk/Messenger/FrameSize.hpp>
+#include <f1x/aasdk/Messenger/ICryptor.hpp>
+#include <f1x/aasdk/Messenger/IMessageOutStream.hpp>
+#include <f1x/aasdk/Transport/ITransport.hpp>
 
-namespace f1x
-{
-namespace aasdk
-{
-namespace messenger
-{
+namespace f1x {
+namespace aasdk {
+namespace messenger {
 
-class MessageOutStream: public IMessageOutStream, public std::enable_shared_from_this<MessageOutStream>, boost::noncopyable
-{
-public:
-    MessageOutStream(boost::asio::io_service& ioService, transport::ITransport::Pointer transport, ICryptor::Pointer cryptor);
+class MessageOutStream : public IMessageOutStream, public std::enable_shared_from_this<MessageOutStream>, boost::noncopyable {
+   public:
+    MessageOutStream(boost::asio::io_context& ioService, transport::ITransport::Pointer transport, ICryptor::Pointer cryptor);
 
     void stream(Message::Pointer message, SendPromise::Pointer promise) override;
 
-private:
+   private:
     using std::enable_shared_from_this<MessageOutStream>::shared_from_this;
 
     void streamSplittedMessage();
@@ -49,7 +45,7 @@ private:
     void setFrameSize(common::Data& data, FrameType frameType, size_t payloadSize, size_t totalSize);
     void reset();
 
-    boost::asio::io_service::strand strand_;
+    boost::asio::io_context::strand strand_;
     transport::ITransport::Pointer transport_;
     ICryptor::Pointer cryptor_;
     Message::Pointer message_;
@@ -57,9 +53,9 @@ private:
     size_t remainingSize_;
     SendPromise::Pointer promise_;
 
-        static constexpr size_t cMaxFramePayloadSize = 0x4000;
+    static constexpr size_t cMaxFramePayloadSize = 0x4000;
 };
 
-}
-}
-}
+}  // namespace messenger
+}  // namespace aasdk
+}  // namespace f1x

@@ -20,20 +20,16 @@
 
 #include <f1x/aasdk/USB/AccessoryModeQuery.hpp>
 
-namespace f1x
-{
-namespace aasdk
-{
-namespace usb
-{
+namespace f1x {
+namespace aasdk {
+namespace usb {
 
-class AccessoryModeProtocolVersionQuery: public AccessoryModeQuery, public std::enable_shared_from_this<AccessoryModeProtocolVersionQuery>
-{
-public:
-    AccessoryModeProtocolVersionQuery(boost::asio::io_service& ioService, IUSBWrapper& usbWrapper, IUSBEndpoint::Pointer usbEndpoint);
+class AccessoryModeProtocolVersionQuery : public AccessoryModeQuery, public std::enable_shared_from_this<AccessoryModeProtocolVersionQuery> {
+   public:
+    AccessoryModeProtocolVersionQuery(boost::asio::io_context& ioService, IUSBWrapper& usbWrapper, IUSBEndpoint::Pointer usbEndpoint);
     void start(Promise::Pointer promise) override;
 
-private:
+   private:
     using std::enable_shared_from_this<AccessoryModeProtocolVersionQuery>::shared_from_this;
     void protocolVersionHandler(size_t bytesTransferred);
 
@@ -41,6 +37,6 @@ private:
     static constexpr uint32_t ACC_REQ_GET_PROTOCOL = 51;
 };
 
-}
-}
-}
+}  // namespace usb
+}  // namespace aasdk
+}  // namespace f1x

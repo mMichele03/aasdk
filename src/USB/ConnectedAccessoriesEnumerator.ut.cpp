@@ -17,41 +17,31 @@
 */
 
 #include <boost/test/unit_test.hpp>
-#include <f1x/aasdk/USB/UT/USBWrapper.mock.hpp>
-#include <f1x/aasdk/USB/UT/AccessoryModeQueryChainFactory.mock.hpp>
-#include <f1x/aasdk/USB/UT/AccessoryModeQueryChain.mock.hpp>
-#include <f1x/aasdk/USB/UT/ConnectedAccessoriesEnumeratorPromiseHandler.mock.hpp>
 #include <f1x/aasdk/USB/ConnectedAccessoriesEnumerator.hpp>
+#include <f1x/aasdk/USB/UT/AccessoryModeQueryChain.mock.hpp>
+#include <f1x/aasdk/USB/UT/AccessoryModeQueryChainFactory.mock.hpp>
+#include <f1x/aasdk/USB/UT/ConnectedAccessoriesEnumeratorPromiseHandler.mock.hpp>
+#include <f1x/aasdk/USB/UT/USBWrapper.mock.hpp>
 
-namespace f1x
-{
-namespace aasdk
-{
-namespace usb
-{
-namespace ut
-{
+namespace f1x {
+namespace aasdk {
+namespace usb {
+namespace ut {
 
 using ::testing::_;
-using ::testing::SetArgReferee;
 using ::testing::Return;
 using ::testing::SaveArg;
+using ::testing::SetArgReferee;
 
-class ConnectedAccessoriesEnumeratorUnitTest
-{
-protected:
+class ConnectedAccessoriesEnumeratorUnitTest {
+   protected:
     ConnectedAccessoriesEnumeratorUnitTest()
-        : queryChain_(&queryChainMock_, [](auto*) {})
-        , deviceListHandle_(&deviceList_, [](auto*) {})
-        , device_(reinterpret_cast<libusb_device*>(-1))
-        , deviceHandle_(reinterpret_cast<libusb_device_handle*>(&dummyDeviceHandle_), [](auto*) {})
-        , promise_(IConnectedAccessoriesEnumerator::Promise::defer(ioService_))
-    {
+        : queryChain_(&queryChainMock_, [](auto*) {}), deviceListHandle_(&deviceList_, [](auto*) {}), device_(reinterpret_cast<libusb_device*>(-1)), deviceHandle_(reinterpret_cast<libusb_device_handle*>(&dummyDeviceHandle_), [](auto*) {}), promise_(IConnectedAccessoriesEnumerator::Promise::defer(ioService_)) {
         promise_->then(std::bind(&ConnectedAccessoriesEnumeratorPromiseHandlerMock::onResolve, &promiseHandlerMock_, std::placeholders::_1),
                        std::bind(&ConnectedAccessoriesEnumeratorPromiseHandlerMock::onReject, &promiseHandlerMock_, std::placeholders::_1));
     }
 
-    boost::asio::io_service ioService_;
+    boost::asio::io_context ioService_;
     USBWrapperMock usbWrapperMock_;
     AccessoryModeQueryChainFactoryMock queryChainFactoryMock_;
     AccessoryModeQueryChainMock queryChainMock_;
@@ -65,8 +55,7 @@ protected:
     IConnectedAccessoriesEnumerator::Promise::Pointer promise_;
 };
 
-BOOST_FIXTURE_TEST_CASE(ConnectedAccessoriesEnumerator_FirstDeviceIsAOAPCapables, ConnectedAccessoriesEnumeratorUnitTest)
-{
+BOOST_FIXTURE_TEST_CASE(ConnectedAccessoriesEnumerator_FirstDeviceIsAOAPCapables, ConnectedAccessoriesEnumeratorUnitTest) {
     deviceList_.push_back(reinterpret_cast<libusb_device*>(1));
     EXPECT_CALL(queryChainFactoryMock_, create()).WillOnce(Return(queryChain_));
     auto connectedAccessoriesEnumerator(std::make_shared<ConnectedAccessoriesEnumerator>(usbWrapperMock_, ioService_, queryChainFactoryMock_));
@@ -87,8 +76,7 @@ BOOST_FIXTURE_TEST_CASE(ConnectedAccessoriesEnumerator_FirstDeviceIsAOAPCapables
     ioService_.run();
 }
 
-BOOST_FIXTURE_TEST_CASE(ConnectedAccessoriesEnumerator_SecondDeviceIsAOAPCapable, ConnectedAccessoriesEnumeratorUnitTest)
-{
+BOOST_FIXTURE_TEST_CASE(ConnectedAccessoriesEnumerator_SecondDeviceIsAOAPCapable, ConnectedAccessoriesEnumeratorUnitTest) {
     deviceList_.push_back(reinterpret_cast<libusb_device*>(1));
     deviceList_.push_back(reinterpret_cast<libusb_device*>(2));
     auto connectedAccessoriesEnumerator(std::make_shared<ConnectedAccessoriesEnumerator>(usbWrapperMock_, ioService_, queryChainFactoryMock_));
@@ -124,10 +112,8 @@ BOOST_FIXTURE_TEST_CASE(ConnectedAccessoriesEnumerator_SecondDeviceIsAOAPCapable
     ioService_.run();
 }
 
-BOOST_FIXTURE_TEST_CASE(ConnectedAccessoriesEnumerator_NoAOAPCapableDevice, ConnectedAccessoriesEnumeratorUnitTest)
-{
-    for(size_t i = 1; i < 1000; ++i)
-    {
+BOOST_FIXTURE_TEST_CASE(ConnectedAccessoriesEnumerator_NoAOAPCapableDevice, ConnectedAccessoriesEnumeratorUnitTest) {
+    for (size_t i = 1; i < 1000; ++i) {
         deviceList_.push_back(reinterpret_cast<libusb_device*>(i));
     }
 
@@ -140,8 +126,7 @@ BOOST_FIXTURE_TEST_CASE(ConnectedAccessoriesEnumerator_NoAOAPCapableDevice, Conn
     EXPECT_CALL(promiseHandlerMock_, onResolve(false));
     EXPECT_CALL(promiseHandlerMock_, onReject(_)).Times(0);
 
-    for(const auto& device : deviceList_)
-    {
+    for (const auto& device : deviceList_) {
         USBWrapperMock::DummyDeviceHandle dummyDeviceHandle;
         DeviceHandle deviceHandle(reinterpret_cast<libusb_device_handle*>(&dummyDeviceHandle), [](auto*) {});
         EXPECT_CALL(usbWrapperMock_, open(device, _)).WillOnce(DoAll(SetArgReferee<1>(deviceHandle), Return(0)));
@@ -158,8 +143,7 @@ BOOST_FIXTURE_TEST_CASE(ConnectedAccessoriesEnumerator_NoAOAPCapableDevice, Conn
     ioService_.run();
 }
 
-BOOST_FIXTURE_TEST_CASE(ConnectedAccessoriesEnumerator_GetDeviceListFailed, ConnectedAccessoriesEnumeratorUnitTest)
-{
+BOOST_FIXTURE_TEST_CASE(ConnectedAccessoriesEnumerator_GetDeviceListFailed, ConnectedAccessoriesEnumeratorUnitTest) {
     EXPECT_CALL(usbWrapperMock_, getDeviceList(_)).WillOnce(DoAll(SetArgReferee<0>(deviceListHandle_), Return(-1)));
     EXPECT_CALL(promiseHandlerMock_, onResolve(_)).Times(0);
     EXPECT_CALL(promiseHandlerMock_, onReject(error::Error(error::ErrorCode::USB_LIST_DEVICES)));
@@ -170,8 +154,7 @@ BOOST_FIXTURE_TEST_CASE(ConnectedAccessoriesEnumerator_GetDeviceListFailed, Conn
     ioService_.run();
 }
 
-BOOST_FIXTURE_TEST_CASE(ConnectedAccessoriesEnumerator_EmptyDevicesList, ConnectedAccessoriesEnumeratorUnitTest)
-{
+BOOST_FIXTURE_TEST_CASE(ConnectedAccessoriesEnumerator_EmptyDevicesList, ConnectedAccessoriesEnumeratorUnitTest) {
     EXPECT_CALL(usbWrapperMock_, getDeviceList(_)).WillOnce(DoAll(SetArgReferee<0>(deviceListHandle_), Return(0)));
     EXPECT_CALL(promiseHandlerMock_, onResolve(false));
     EXPECT_CALL(promiseHandlerMock_, onReject(_)).Times(0);
@@ -182,10 +165,8 @@ BOOST_FIXTURE_TEST_CASE(ConnectedAccessoriesEnumerator_EmptyDevicesList, Connect
     ioService_.run();
 }
 
-BOOST_FIXTURE_TEST_CASE(ConnectedAccessoriesEnumerator_OpenDeviceFailed, ConnectedAccessoriesEnumeratorUnitTest)
-{
-    for(size_t i = 1; i < 1000; ++i)
-    {
+BOOST_FIXTURE_TEST_CASE(ConnectedAccessoriesEnumerator_OpenDeviceFailed, ConnectedAccessoriesEnumeratorUnitTest) {
+    for (size_t i = 1; i < 1000; ++i) {
         deviceList_.push_back(reinterpret_cast<libusb_device*>(i));
     }
 
@@ -197,16 +178,14 @@ BOOST_FIXTURE_TEST_CASE(ConnectedAccessoriesEnumerator_OpenDeviceFailed, Connect
     EXPECT_CALL(promiseHandlerMock_, onResolve(false));
     EXPECT_CALL(promiseHandlerMock_, onReject(_)).Times(0);
 
-    for(const auto& device : deviceList_)
-    {
+    for (const auto& device : deviceList_) {
         EXPECT_CALL(usbWrapperMock_, open(device, _)).WillOnce(DoAll(SetArgReferee<1>(nullptr), Return(0xFFF)));
     }
 
     ioService_.run();
 }
 
-BOOST_FIXTURE_TEST_CASE(ConnectedAccessoriesEnumerator_CancelEnumeration, ConnectedAccessoriesEnumeratorUnitTest)
-{
+BOOST_FIXTURE_TEST_CASE(ConnectedAccessoriesEnumerator_CancelEnumeration, ConnectedAccessoriesEnumeratorUnitTest) {
     deviceList_.push_back(reinterpret_cast<libusb_device*>(1));
     EXPECT_CALL(queryChainFactoryMock_, create()).WillOnce(Return(queryChain_));
     auto connectedAccessoriesEnumerator(std::make_shared<ConnectedAccessoriesEnumerator>(usbWrapperMock_, ioService_, queryChainFactoryMock_));
@@ -231,7 +210,7 @@ BOOST_FIXTURE_TEST_CASE(ConnectedAccessoriesEnumerator_CancelEnumeration, Connec
     ioService_.run();
 }
 
-}
-}
-}
-}
+}  // namespace ut
+}  // namespace usb
+}  // namespace aasdk
+}  // namespace f1x

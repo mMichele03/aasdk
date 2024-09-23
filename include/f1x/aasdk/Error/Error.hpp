@@ -18,20 +18,16 @@
 
 #pragma once
 
+#include <f1x/aasdk/Error/ErrorCode.hpp>
 #include <stdexcept>
 #include <string>
-#include <f1x/aasdk/Error/ErrorCode.hpp>
 
-namespace f1x
-{
-namespace aasdk
-{
-namespace error
-{
+namespace f1x {
+namespace aasdk {
+namespace error {
 
-class Error: public std::exception
-{
-public:
+class Error : public std::exception {
+   public:
     Error();
     Error(ErrorCode code, uint32_t nativeCode = 0);
 
@@ -44,12 +40,12 @@ public:
     bool operator==(const ErrorCode& code) const;
     bool operator!=(const ErrorCode& code) const;
 
-private:
+   private:
     ErrorCode code_;
     uint32_t nativeCode_;
     std::string message_;
 };
 
-}
-}
-}
+}  // namespace error
+}  // namespace aasdk
+}  // namespace f1x

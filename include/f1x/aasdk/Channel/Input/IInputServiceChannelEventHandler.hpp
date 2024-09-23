@@ -18,22 +18,19 @@
 
 #pragma once
 
-#include <stdint.h>
-#include <aasdk_proto/ChannelOpenRequestMessage.pb.h>
 #include <aasdk_proto/BindingRequestMessage.pb.h>
+#include <aasdk_proto/ChannelOpenRequestMessage.pb.h>
+#include <stdint.h>
 
-namespace f1x
-{
-namespace aasdk
-{
-namespace channel
-{
-namespace input
-{
+#include <f1x/aasdk/Error/Error.hpp>
 
-class IInputServiceChannelEventHandler
-{
-public:
+namespace f1x {
+namespace aasdk {
+namespace channel {
+namespace input {
+
+class IInputServiceChannelEventHandler {
+   public:
     typedef std::shared_ptr<IInputServiceChannelEventHandler> Pointer;
 
     IInputServiceChannelEventHandler() = default;
@@ -44,7 +41,7 @@ public:
     virtual void onChannelError(const error::Error& e) = 0;
 };
 
-}
-}
-}
-}
+}  // namespace input
+}  // namespace channel
+}  // namespace aasdk
+}  // namespace f1x

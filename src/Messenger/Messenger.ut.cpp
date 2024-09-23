@@ -17,42 +17,33 @@
 */
 
 #include <boost/test/unit_test.hpp>
+#include <f1x/aasdk/Messenger/Messenger.hpp>
 #include <f1x/aasdk/Messenger/UT/MessageInStream.mock.hpp>
 #include <f1x/aasdk/Messenger/UT/MessageOutStream.mock.hpp>
 #include <f1x/aasdk/Messenger/UT/ReceivePromiseHandler.mock.hpp>
 #include <f1x/aasdk/Messenger/UT/SendPromiseHandler.mock.hpp>
-#include <f1x/aasdk/Messenger/Messenger.hpp>
 
-namespace f1x
-{
-namespace aasdk
-{
-namespace messenger
-{
-namespace ut
-{
+namespace f1x {
+namespace aasdk {
+namespace messenger {
+namespace ut {
 
 using ::testing::_;
-using ::testing::SaveArg;
 using ::testing::Return;
+using ::testing::SaveArg;
 
-class MessengerUnitTest
-{
-protected:
+class MessengerUnitTest {
+   protected:
     MessengerUnitTest()
-        : messageInStream_(&messageInStreamMock_, [](auto*) {})
-        , messageOutStream_(&messageOutStreamMock_, [](auto*) {})
-        , receivePromise_(ReceivePromise::defer(ioService_))
-        , sendPromise_(SendPromise::defer(ioService_))
-    {
+        : messageInStream_(&messageInStreamMock_, [](auto*) {}), messageOutStream_(&messageOutStreamMock_, [](auto*) {}), receivePromise_(ReceivePromise::defer(ioService_)), sendPromise_(SendPromise::defer(ioService_)) {
         receivePromise_->then(std::bind(&ReceivePromiseHandlerMock::onResolve, &receivePromiseHandlerMock_, std::placeholders::_1),
-                             std::bind(&ReceivePromiseHandlerMock::onReject, &receivePromiseHandlerMock_, std::placeholders::_1));
+                              std::bind(&ReceivePromiseHandlerMock::onReject, &receivePromiseHandlerMock_, std::placeholders::_1));
 
         sendPromise_->then(std::bind(&SendPromiseHandlerMock::onResolve, &sendPromiseHandlerMock_),
-                          std::bind(&SendPromiseHandlerMock::onReject, &sendPromiseHandlerMock_, std::placeholders::_1));
+                           std::bind(&SendPromiseHandlerMock::onReject, &sendPromiseHandlerMock_, std::placeholders::_1));
     }
 
-    boost::asio::io_service ioService_;
+    boost::asio::io_context ioService_;
     MessageInStreamMock messageInStreamMock_;
     IMessageInStream::Pointer messageInStream_;
     MessageOutStreamMock messageOutStreamMock_;
@@ -63,8 +54,7 @@ protected:
     SendPromise::Pointer sendPromise_;
 };
 
-BOOST_FIXTURE_TEST_CASE(Messenger_Receive, MessengerUnitTest)
-{
+BOOST_FIXTURE_TEST_CASE(Messenger_Receive, MessengerUnitTest) {
     Messenger::Pointer themessenger(std::make_shared<Messenger>(ioService_, messageInStream_, messageOutStream_));
     themessenger->enqueueReceive(ChannelId::MEDIA_AUDIO, std::move(receivePromise_));
 
@@ -82,8 +72,7 @@ BOOST_FIXTURE_TEST_CASE(Messenger_Receive, MessengerUnitTest)
     ioService_.run();
 }
 
-BOOST_FIXTURE_TEST_CASE(Messenger_DirectReceive, MessengerUnitTest)
-{
+BOOST_FIXTURE_TEST_CASE(Messenger_DirectReceive, MessengerUnitTest) {
     Messenger::Pointer themessenger(std::make_shared<Messenger>(ioService_, messageInStream_, messageOutStream_));
     themessenger->enqueueReceive(ChannelId::MEDIA_AUDIO, std::move(receivePromise_));
 
@@ -101,7 +90,7 @@ BOOST_FIXTURE_TEST_CASE(Messenger_DirectReceive, MessengerUnitTest)
 
     auto secondReceivePromise = ReceivePromise::defer(ioService_);
     secondReceivePromise->then(std::bind(&ReceivePromiseHandlerMock::onResolve, &receivePromiseHandlerMock_, std::placeholders::_1),
-                              std::bind(&ReceivePromiseHandlerMock::onReject, &receivePromiseHandlerMock_, std::placeholders::_1));
+                               std::bind(&ReceivePromiseHandlerMock::onReject, &receivePromiseHandlerMock_, std::placeholders::_1));
     themessenger->enqueueReceive(ChannelId::INPUT, std::move(secondReceivePromise));
 
     EXPECT_CALL(receivePromiseHandlerMock_, onReject(_)).Times(0);
@@ -118,8 +107,7 @@ BOOST_FIXTURE_TEST_CASE(Messenger_DirectReceive, MessengerUnitTest)
     ioService_.run();
 }
 
-BOOST_FIXTURE_TEST_CASE(Messenger_OnlyOneReceiveAtATime, MessengerUnitTest)
-{
+BOOST_FIXTURE_TEST_CASE(Messenger_OnlyOneReceiveAtATime, MessengerUnitTest) {
     Messenger::Pointer themessenger(std::make_shared<Messenger>(ioService_, messageInStream_, messageOutStream_));
     themessenger->enqueueReceive(ChannelId::MEDIA_AUDIO, std::move(receivePromise_));
 
@@ -131,7 +119,7 @@ BOOST_FIXTURE_TEST_CASE(Messenger_OnlyOneReceiveAtATime, MessengerUnitTest)
 
     auto secondReceivePromise = ReceivePromise::defer(ioService_);
     secondReceivePromise->then(std::bind(&ReceivePromiseHandlerMock::onResolve, &receivePromiseHandlerMock_, std::placeholders::_1),
-                              std::bind(&ReceivePromiseHandlerMock::onReject, &receivePromiseHandlerMock_, std::placeholders::_1));
+                               std::bind(&ReceivePromiseHandlerMock::onReject, &receivePromiseHandlerMock_, std::placeholders::_1));
     themessenger->enqueueReceive(ChannelId::INPUT, std::move(secondReceivePromise));
 
     ioService_.run();
@@ -146,8 +134,7 @@ BOOST_FIXTURE_TEST_CASE(Messenger_OnlyOneReceiveAtATime, MessengerUnitTest)
     ioService_.run();
 }
 
-BOOST_FIXTURE_TEST_CASE(Messenger_Send, MessengerUnitTest)
-{
+BOOST_FIXTURE_TEST_CASE(Messenger_Send, MessengerUnitTest) {
     Messenger::Pointer themessenger(std::make_shared<Messenger>(ioService_, messageInStream_, messageOutStream_));
 
     Message::Pointer message(std::make_shared<Message>(ChannelId::MEDIA_AUDIO, EncryptionType::ENCRYPTED, MessageType::SPECIFIC));
@@ -166,8 +153,7 @@ BOOST_FIXTURE_TEST_CASE(Messenger_Send, MessengerUnitTest)
     ioService_.run();
 }
 
-BOOST_FIXTURE_TEST_CASE(Messenger_OnlyOneSendAtATime, MessengerUnitTest)
-{
+BOOST_FIXTURE_TEST_CASE(Messenger_OnlyOneSendAtATime, MessengerUnitTest) {
     Messenger::Pointer themessenger(std::make_shared<Messenger>(ioService_, messageInStream_, messageOutStream_));
 
     Message::Pointer message(std::make_shared<Message>(ChannelId::MEDIA_AUDIO, EncryptionType::ENCRYPTED, MessageType::SPECIFIC));
@@ -181,7 +167,7 @@ BOOST_FIXTURE_TEST_CASE(Messenger_OnlyOneSendAtATime, MessengerUnitTest)
 
     auto secondSendPromise = SendPromise::defer(ioService_);
     secondSendPromise->then(std::bind(&SendPromiseHandlerMock::onResolve, &sendPromiseHandlerMock_),
-                           std::bind(&SendPromiseHandlerMock::onReject, &sendPromiseHandlerMock_, std::placeholders::_1));
+                            std::bind(&SendPromiseHandlerMock::onReject, &sendPromiseHandlerMock_, std::placeholders::_1));
     themessenger->enqueueSend(message, std::move(secondSendPromise));
 
     ioService_.run();
@@ -197,8 +183,7 @@ BOOST_FIXTURE_TEST_CASE(Messenger_OnlyOneSendAtATime, MessengerUnitTest)
     ioService_.run();
 }
 
-BOOST_FIXTURE_TEST_CASE(Messenger_SendFailed, MessengerUnitTest)
-{
+BOOST_FIXTURE_TEST_CASE(Messenger_SendFailed, MessengerUnitTest) {
     Messenger::Pointer themessenger(std::make_shared<Messenger>(ioService_, messageInStream_, messageOutStream_));
 
     Message::Pointer message(std::make_shared<Message>(ChannelId::MEDIA_AUDIO, EncryptionType::ENCRYPTED, MessageType::SPECIFIC));
@@ -212,7 +197,7 @@ BOOST_FIXTURE_TEST_CASE(Messenger_SendFailed, MessengerUnitTest)
 
     auto secondSendPromise = SendPromise::defer(ioService_);
     secondSendPromise->then(std::bind(&SendPromiseHandlerMock::onResolve, &sendPromiseHandlerMock_),
-                           std::bind(&SendPromiseHandlerMock::onReject, &sendPromiseHandlerMock_, std::placeholders::_1));
+                            std::bind(&SendPromiseHandlerMock::onReject, &sendPromiseHandlerMock_, std::placeholders::_1));
     themessenger->enqueueSend(message, std::move(secondSendPromise));
 
     ioService_.run();
@@ -226,7 +211,7 @@ BOOST_FIXTURE_TEST_CASE(Messenger_SendFailed, MessengerUnitTest)
     ioService_.run();
 }
 
-}
-}
-}
-}
+}  // namespace ut
+}  // namespace messenger
+}  // namespace aasdk
+}  // namespace f1x

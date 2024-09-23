@@ -17,45 +17,37 @@
 */
 
 #include <boost/test/unit_test.hpp>
-#include <f1x/aasdk/USB/UT/USBEndpoint.mock.hpp>
-#include <f1x/aasdk/USB/UT/AOAPDevice.mock.hpp>
+#include <f1x/aasdk/Transport/USBTransport.hpp>
 #include <f1x/aasdk/Transport/UT/TransportReceivePromiseHandler.mock.hpp>
 #include <f1x/aasdk/Transport/UT/TransportSendPromiseHandler.mock.hpp>
-#include <f1x/aasdk/Transport/USBTransport.hpp>
+#include <f1x/aasdk/USB/UT/AOAPDevice.mock.hpp>
+#include <f1x/aasdk/USB/UT/USBEndpoint.mock.hpp>
 
-namespace f1x
-{
-namespace aasdk
-{
-namespace transport
-{
-namespace ut
-{
+namespace f1x {
+namespace aasdk {
+namespace transport {
+namespace ut {
 
-using ::testing::ReturnRef;
-using ::testing::SaveArg;
 using ::testing::_;
 using ::testing::AtLeast;
+using ::testing::ReturnRef;
+using ::testing::SaveArg;
 
-class USBTransportUnitTest
-{
-protected:
+class USBTransportUnitTest {
+   protected:
     USBTransportUnitTest()
-        : receivePromise_(ITransport::ReceivePromise::defer(ioService_))
-        , sendPromise_(ITransport::SendPromise::defer(ioService_))
-        , aoapDevice_(&aoapDeviceMock_, [](auto*) {})
-    {
+        : receivePromise_(ITransport::ReceivePromise::defer(ioService_)), sendPromise_(ITransport::SendPromise::defer(ioService_)), aoapDevice_(&aoapDeviceMock_, [](auto*) {}) {
         EXPECT_CALL(aoapDeviceMock_, getInEndpoint()).WillRepeatedly(ReturnRef(inEndpointMock_));
         EXPECT_CALL(aoapDeviceMock_, getOutEndpoint()).WillRepeatedly(ReturnRef(outEndpointMock_));
 
         receivePromise_->then(std::bind(&TransportReceivePromiseHandlerMock::onResolve, &receivePromiseHandlerMock_, std::placeholders::_1),
-                             std::bind(&TransportReceivePromiseHandlerMock::onReject, &receivePromiseHandlerMock_, std::placeholders::_1));
+                              std::bind(&TransportReceivePromiseHandlerMock::onReject, &receivePromiseHandlerMock_, std::placeholders::_1));
 
         sendPromise_->then(std::bind(&TransportSendPromiseHandlerMock::onResolve, &sendPromiseHandlerMock_),
-                          std::bind(&TransportSendPromiseHandlerMock::onReject, &sendPromiseHandlerMock_, std::placeholders::_1));
+                           std::bind(&TransportSendPromiseHandlerMock::onReject, &sendPromiseHandlerMock_, std::placeholders::_1));
     }
 
-    boost::asio::io_service ioService_;
+    boost::asio::io_context ioService_;
     usb::ut::USBEndpointMock inEndpointMock_;
     usb::ut::USBEndpointMock outEndpointMock_;
     TransportReceivePromiseHandlerMock receivePromiseHandlerMock_;
@@ -66,8 +58,7 @@ protected:
     usb::IAOAPDevice::Pointer aoapDevice_;
 };
 
-BOOST_FIXTURE_TEST_CASE(USBTransport_ReceiveAtOnce, USBTransportUnitTest)
-{
+BOOST_FIXTURE_TEST_CASE(USBTransport_ReceiveAtOnce, USBTransportUnitTest) {
     const size_t receiveSize = 100;
 
     usb::IUSBEndpoint::Promise::Pointer usbEndpointPromise;
@@ -89,8 +80,7 @@ BOOST_FIXTURE_TEST_CASE(USBTransport_ReceiveAtOnce, USBTransportUnitTest)
     ioService_.run();
 }
 
-BOOST_FIXTURE_TEST_CASE(USBTransport_ReceiveInPieces, USBTransportUnitTest)
-{
+BOOST_FIXTURE_TEST_CASE(USBTransport_ReceiveInPieces, USBTransportUnitTest) {
     const size_t stepsCount = 100;
     const size_t receiveSize = 1000 * stepsCount;
     const size_t stepSize = receiveSize / stepsCount;
@@ -100,15 +90,13 @@ BOOST_FIXTURE_TEST_CASE(USBTransport_ReceiveInPieces, USBTransportUnitTest)
 
     usb::IUSBEndpoint::Promise::Pointer usbEndpointPromise;
     common::DataBuffer dataBuffer;
-    EXPECT_CALL(inEndpointMock_, bulkTransfer(_, _, _)).Times(AtLeast(stepsCount))
-            .WillRepeatedly(DoAll(SaveArg<0>(&dataBuffer), SaveArg<2>(&usbEndpointPromise)));
+    EXPECT_CALL(inEndpointMock_, bulkTransfer(_, _, _)).Times(AtLeast(stepsCount)).WillRepeatedly(DoAll(SaveArg<0>(&dataBuffer), SaveArg<2>(&usbEndpointPromise)));
 
     common::Data expectedData(receiveSize, 0x5E);
     EXPECT_CALL(receivePromiseHandlerMock_, onResolve(expectedData)).Times(1);
     EXPECT_CALL(receivePromiseHandlerMock_, onReject(_)).Times(0);
 
-    for(size_t i = 0; i < stepsCount; ++i)
-    {
+    for (size_t i = 0; i < stepsCount; ++i) {
         ioService_.run();
         ioService_.reset();
 
@@ -120,8 +108,7 @@ BOOST_FIXTURE_TEST_CASE(USBTransport_ReceiveInPieces, USBTransportUnitTest)
     }
 }
 
-BOOST_FIXTURE_TEST_CASE(USBTransport_OnlyOneReceiveAtATime, USBTransportUnitTest)
-{
+BOOST_FIXTURE_TEST_CASE(USBTransport_OnlyOneReceiveAtATime, USBTransportUnitTest) {
     const size_t receiveSize = 200;
     const size_t stepSize = receiveSize / 2;
 
@@ -141,7 +128,7 @@ BOOST_FIXTURE_TEST_CASE(USBTransport_OnlyOneReceiveAtATime, USBTransportUnitTest
     auto secondPromise = ITransport::ReceivePromise::defer(ioService_);
     TransportReceivePromiseHandlerMock secondPromiseHandlerMock;
     secondPromise->then(std::bind(&TransportReceivePromiseHandlerMock::onResolve, &secondPromiseHandlerMock, std::placeholders::_1),
-                       std::bind(&TransportReceivePromiseHandlerMock::onReject, &secondPromiseHandlerMock, std::placeholders::_1));
+                        std::bind(&TransportReceivePromiseHandlerMock::onReject, &secondPromiseHandlerMock, std::placeholders::_1));
 
     transport->receive(stepSize, std::move(secondPromise));
     ioService_.run();
@@ -159,8 +146,7 @@ BOOST_FIXTURE_TEST_CASE(USBTransport_OnlyOneReceiveAtATime, USBTransportUnitTest
     ioService_.run();
 }
 
-BOOST_FIXTURE_TEST_CASE(USBTransport_ReceiveError, USBTransportUnitTest)
-{
+BOOST_FIXTURE_TEST_CASE(USBTransport_ReceiveError, USBTransportUnitTest) {
     usb::IUSBEndpoint::Promise::Pointer usbEndpointPromise;
     EXPECT_CALL(inEndpointMock_, bulkTransfer(_, _, _)).WillOnce(SaveArg<2>(&usbEndpointPromise));
 
@@ -169,7 +155,7 @@ BOOST_FIXTURE_TEST_CASE(USBTransport_ReceiveError, USBTransportUnitTest)
 
     auto secondPromise = ITransport::ReceivePromise::defer(ioService_);
     secondPromise->then(std::bind(&TransportReceivePromiseHandlerMock::onResolve, &receivePromiseHandlerMock_, std::placeholders::_1),
-                       std::bind(&TransportReceivePromiseHandlerMock::onReject, &receivePromiseHandlerMock_, std::placeholders::_1));
+                        std::bind(&TransportReceivePromiseHandlerMock::onReject, &receivePromiseHandlerMock_, std::placeholders::_1));
 
     transport->receive(1000, std::move(secondPromise));
     ioService_.run();
@@ -183,8 +169,7 @@ BOOST_FIXTURE_TEST_CASE(USBTransport_ReceiveError, USBTransportUnitTest)
     ioService_.run();
 }
 
-BOOST_FIXTURE_TEST_CASE(USBTransport_Send, USBTransportUnitTest)
-{
+BOOST_FIXTURE_TEST_CASE(USBTransport_Send, USBTransportUnitTest) {
     usb::IUSBEndpoint::Promise::Pointer usbEndpointPromise;
     common::DataBuffer buffer;
     EXPECT_CALL(outEndpointMock_, bulkTransfer(_, _, _)).WillOnce(DoAll(SaveArg<0>(&buffer), SaveArg<2>(&usbEndpointPromise)));
@@ -204,8 +189,7 @@ BOOST_FIXTURE_TEST_CASE(USBTransport_Send, USBTransportUnitTest)
     ioService_.run();
 }
 
-BOOST_FIXTURE_TEST_CASE(USBTransport_SendInPieces, USBTransportUnitTest)
-{
+BOOST_FIXTURE_TEST_CASE(USBTransport_SendInPieces, USBTransportUnitTest) {
     usb::IUSBEndpoint::Promise::Pointer usbEndpointPromise;
     common::DataBuffer buffer;
     EXPECT_CALL(outEndpointMock_, bulkTransfer(_, _, _)).Times(2).WillRepeatedly(DoAll(SaveArg<0>(&buffer), SaveArg<2>(&usbEndpointPromise)));
@@ -235,8 +219,7 @@ BOOST_FIXTURE_TEST_CASE(USBTransport_SendInPieces, USBTransportUnitTest)
     ioService_.run();
 }
 
-BOOST_FIXTURE_TEST_CASE(USBTransport_OnlyOneSendAtATime, USBTransportUnitTest)
-{
+BOOST_FIXTURE_TEST_CASE(USBTransport_OnlyOneSendAtATime, USBTransportUnitTest) {
     usb::IUSBEndpoint::Promise::Pointer usbEndpointPromise;
     common::DataBuffer buffer;
     EXPECT_CALL(outEndpointMock_, bulkTransfer(_, _, _)).Times(2).WillRepeatedly(DoAll(SaveArg<0>(&buffer), SaveArg<2>(&usbEndpointPromise)));
@@ -252,7 +235,7 @@ BOOST_FIXTURE_TEST_CASE(USBTransport_OnlyOneSendAtATime, USBTransportUnitTest)
     auto secondSendPromise = ITransport::SendPromise::defer(ioService_);
     TransportSendPromiseHandlerMock secondSendPromiseHandlerMock;
     secondSendPromise->then(std::bind(&TransportSendPromiseHandlerMock::onResolve, &secondSendPromiseHandlerMock),
-                           std::bind(&TransportSendPromiseHandlerMock::onReject, &secondSendPromiseHandlerMock, std::placeholders::_1));
+                            std::bind(&TransportSendPromiseHandlerMock::onReject, &secondSendPromiseHandlerMock, std::placeholders::_1));
 
     transport->send(expectedData2, std::move(secondSendPromise));
     ioService_.run();
@@ -276,8 +259,7 @@ BOOST_FIXTURE_TEST_CASE(USBTransport_OnlyOneSendAtATime, USBTransportUnitTest)
     ioService_.run();
 }
 
-BOOST_FIXTURE_TEST_CASE(USBTransport_SendError, USBTransportUnitTest)
-{
+BOOST_FIXTURE_TEST_CASE(USBTransport_SendError, USBTransportUnitTest) {
     usb::IUSBEndpoint::Promise::Pointer usbEndpointPromise;
     EXPECT_CALL(outEndpointMock_, bulkTransfer(_, _, _)).Times(2).WillRepeatedly(SaveArg<2>(&usbEndpointPromise));
 
@@ -290,7 +272,7 @@ BOOST_FIXTURE_TEST_CASE(USBTransport_SendError, USBTransportUnitTest)
     auto secondSendPromise = ITransport::SendPromise::defer(ioService_);
     TransportSendPromiseHandlerMock secondSendPromiseHandlerMock;
     secondSendPromise->then(std::bind(&TransportSendPromiseHandlerMock::onResolve, &secondSendPromiseHandlerMock),
-                           std::bind(&TransportSendPromiseHandlerMock::onReject, &secondSendPromiseHandlerMock, std::placeholders::_1));
+                            std::bind(&TransportSendPromiseHandlerMock::onReject, &secondSendPromiseHandlerMock, std::placeholders::_1));
 
     const common::Data expectedData2(3000, 0x5F);
     transport->send(expectedData2, std::move(secondSendPromise));
@@ -310,7 +292,7 @@ BOOST_FIXTURE_TEST_CASE(USBTransport_SendError, USBTransportUnitTest)
     ioService_.run();
 }
 
-}
-}
-}
-}
+}  // namespace ut
+}  // namespace transport
+}  // namespace aasdk
+}  // namespace f1x

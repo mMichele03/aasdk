@@ -21,21 +21,17 @@
 #include <f1x/aasdk/TCP/ITCPEndpoint.hpp>
 #include <f1x/aasdk/Transport/Transport.hpp>
 
-namespace f1x
-{
-namespace aasdk
-{
-namespace transport
-{
+namespace f1x {
+namespace aasdk {
+namespace transport {
 
-class TCPTransport: public Transport
-{
-public:
-    TCPTransport(boost::asio::io_service& ioService, tcp::ITCPEndpoint::Pointer tcpEndpoint);
+class TCPTransport : public Transport {
+   public:
+    TCPTransport(boost::asio::io_context& ioService, tcp::ITCPEndpoint::Pointer tcpEndpoint);
 
     void stop() override;
 
-private:
+   private:
     void enqueueReceive(common::DataBuffer buffer) override;
     void enqueueSend(SendQueue::iterator queueElement) override;
     void sendHandler(SendQueue::iterator queueElement, const error::Error& e);
@@ -43,6 +39,6 @@ private:
     tcp::ITCPEndpoint::Pointer tcpEndpoint_;
 };
 
-}
-}
-}
+}  // namespace transport
+}  // namespace aasdk
+}  // namespace f1x

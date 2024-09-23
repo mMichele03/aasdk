@@ -19,23 +19,18 @@
 #pragma once
 
 #include <boost/asio.hpp>
-#include <f1x/aasdk/Messenger/IMessenger.hpp>
-#include <f1x/aasdk/Channel/ServiceChannel.hpp>
 #include <f1x/aasdk/Channel/Control/IControlServiceChannel.hpp>
+#include <f1x/aasdk/Channel/ServiceChannel.hpp>
+#include <f1x/aasdk/Messenger/IMessenger.hpp>
 
-namespace f1x
-{
-namespace aasdk
-{
-namespace channel
-{
-namespace control
-{
+namespace f1x {
+namespace aasdk {
+namespace channel {
+namespace control {
 
-class ControlServiceChannel: public IControlServiceChannel, public ServiceChannel, public std::enable_shared_from_this<ControlServiceChannel>
-{
-public:
-    ControlServiceChannel(boost::asio::io_service::strand& strand, messenger::IMessenger::Pointer messenger);
+class ControlServiceChannel : public IControlServiceChannel, public ServiceChannel, public std::enable_shared_from_this<ControlServiceChannel> {
+   public:
+    ControlServiceChannel(boost::asio::io_context::strand& strand, messenger::IMessenger::Pointer messenger);
 
     void receive(IControlServiceChannelEventHandler::Pointer eventHandler) override;
 
@@ -49,7 +44,7 @@ public:
     void sendNavigationFocusResponse(const proto::messages::NavigationFocusResponse& respons, SendPromise::Pointer promisee) override;
     void sendPingRequest(const proto::messages::PingRequest& request, SendPromise::Pointer promise) override;
 
-private:
+   private:
     using std::enable_shared_from_this<ControlServiceChannel>::shared_from_this;
     void messageHandler(messenger::Message::Pointer message, IControlServiceChannelEventHandler::Pointer eventHandler);
 
@@ -62,7 +57,7 @@ private:
     void handlePingResponse(const common::DataConstBuffer& payload, IControlServiceChannelEventHandler::Pointer eventHandler);
 };
 
-}
-}
-}
-}
+}  // namespace control
+}  // namespace channel
+}  // namespace aasdk
+}  // namespace f1x

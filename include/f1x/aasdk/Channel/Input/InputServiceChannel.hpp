@@ -18,22 +18,17 @@
 
 #pragma once
 
-#include <f1x/aasdk/Channel/ServiceChannel.hpp>
 #include <f1x/aasdk/Channel/Input/IInputServiceChannel.hpp>
+#include <f1x/aasdk/Channel/ServiceChannel.hpp>
 
-namespace f1x
-{
-namespace aasdk
-{
-namespace channel
-{
-namespace input
-{
+namespace f1x {
+namespace aasdk {
+namespace channel {
+namespace input {
 
-class InputServiceChannel: public IInputServiceChannel, public ServiceChannel, public std::enable_shared_from_this<InputServiceChannel>
-{
- public:
-    InputServiceChannel(boost::asio::io_service::strand& strand, messenger::IMessenger::Pointer messenger);
+class InputServiceChannel : public IInputServiceChannel, public ServiceChannel, public std::enable_shared_from_this<InputServiceChannel> {
+   public:
+    InputServiceChannel(boost::asio::io_context::strand& strand, messenger::IMessenger::Pointer messenger);
 
     void receive(IInputServiceChannelEventHandler::Pointer eventHandler) override;
     void sendChannelOpenResponse(const proto::messages::ChannelOpenResponse& response, SendPromise::Pointer promise) override;
@@ -41,14 +36,14 @@ class InputServiceChannel: public IInputServiceChannel, public ServiceChannel, p
     void sendBindingResponse(const proto::messages::BindingResponse& response, SendPromise::Pointer promise) override;
     messenger::ChannelId getId() const override;
 
-private:
+   private:
     using std::enable_shared_from_this<InputServiceChannel>::shared_from_this;
     void messageHandler(messenger::Message::Pointer message, IInputServiceChannelEventHandler::Pointer eventHandler);
     void handleBindingRequest(const common::DataConstBuffer& payload, IInputServiceChannelEventHandler::Pointer eventHandler);
     void handleChannelOpenRequest(const common::DataConstBuffer& payload, IInputServiceChannelEventHandler::Pointer eventHandler);
 };
 
-}
-}
-}
-}
+}  // namespace input
+}  // namespace channel
+}  // namespace aasdk
+}  // namespace f1x

@@ -19,33 +19,29 @@
 #pragma once
 
 #include <boost/asio.hpp>
-#include <f1x/aasdk/USB/IUSBWrapper.hpp>
 #include <f1x/aasdk/USB/IAccessoryModeQueryChainFactory.hpp>
 #include <f1x/aasdk/USB/IConnectedAccessoriesEnumerator.hpp>
+#include <f1x/aasdk/USB/IUSBWrapper.hpp>
 
-namespace f1x
-{
-namespace aasdk
-{
-namespace usb
-{
+namespace f1x {
+namespace aasdk {
+namespace usb {
 
-class ConnectedAccessoriesEnumerator: public IConnectedAccessoriesEnumerator, public std::enable_shared_from_this<ConnectedAccessoriesEnumerator>
-{
-public:
-    ConnectedAccessoriesEnumerator(IUSBWrapper& usbWrapper, boost::asio::io_service& ioService, IAccessoryModeQueryChainFactory& queryChainFactory);
+class ConnectedAccessoriesEnumerator : public IConnectedAccessoriesEnumerator, public std::enable_shared_from_this<ConnectedAccessoriesEnumerator> {
+   public:
+    ConnectedAccessoriesEnumerator(IUSBWrapper& usbWrapper, boost::asio::io_context& ioService, IAccessoryModeQueryChainFactory& queryChainFactory);
 
     void enumerate(Promise::Pointer promise) override;
     void cancel() override;
 
-private:
+   private:
     using std::enable_shared_from_this<ConnectedAccessoriesEnumerator>::shared_from_this;
     void queryNextDevice();
     DeviceHandle getNextDeviceHandle();
     void reset();
 
     IUSBWrapper& usbWrapper_;
-    boost::asio::io_service::strand strand_;
+    boost::asio::io_context::strand strand_;
     IAccessoryModeQueryChainFactory& queryChainFactory_;
     IAccessoryModeQueryChain::Pointer queryChain_;
     Promise::Pointer promise_;
@@ -53,6 +49,6 @@ private:
     DeviceList::iterator actualDeviceIter_;
 };
 
-}
-}
-}
+}  // namespace usb
+}  // namespace aasdk
+}  // namespace f1x

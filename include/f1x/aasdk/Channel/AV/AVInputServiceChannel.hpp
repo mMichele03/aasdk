@@ -18,24 +18,19 @@
 
 #pragma once
 
+#include <f1x/aasdk/Channel/AV/IAVInputServiceChannel.hpp>
+#include <f1x/aasdk/Channel/ServiceChannel.hpp>
 #include <f1x/aasdk/Messenger/MessageId.hpp>
 #include <f1x/aasdk/Messenger/Timestamp.hpp>
-#include <f1x/aasdk/Channel/ServiceChannel.hpp>
-#include <f1x/aasdk/Channel/AV/IAVInputServiceChannel.hpp>
 
-namespace f1x
-{
-namespace aasdk
-{
-namespace channel
-{
-namespace av
-{
+namespace f1x {
+namespace aasdk {
+namespace channel {
+namespace av {
 
-class AVInputServiceChannel: public IAVInputServiceChannel, public ServiceChannel, public std::enable_shared_from_this<AVInputServiceChannel>
-{
-public:
-    AVInputServiceChannel(boost::asio::io_service::strand& strand, messenger::IMessenger::Pointer messenger);
+class AVInputServiceChannel : public IAVInputServiceChannel, public ServiceChannel, public std::enable_shared_from_this<AVInputServiceChannel> {
+   public:
+    AVInputServiceChannel(boost::asio::io_context::strand& strand, messenger::IMessenger::Pointer messenger);
 
     void receive(IAVInputServiceChannelEventHandler::Pointer eventHandler) override;
     void sendChannelOpenResponse(const proto::messages::ChannelOpenResponse& response, SendPromise::Pointer promise) override;
@@ -44,7 +39,7 @@ public:
     void sendAVMediaWithTimestampIndication(messenger::Timestamp::ValueType, const common::Data& data, SendPromise::Pointer promise) override;
     messenger::ChannelId getId() const override;
 
-private:
+   private:
     using std::enable_shared_from_this<AVInputServiceChannel>::shared_from_this;
     void messageHandler(messenger::Message::Pointer message, IAVInputServiceChannelEventHandler::Pointer eventHandler);
     void handleAVChannelSetupRequest(const common::DataConstBuffer& payload, IAVInputServiceChannelEventHandler::Pointer eventHandler);
@@ -53,7 +48,7 @@ private:
     void handleChannelOpenRequest(const common::DataConstBuffer& payload, IAVInputServiceChannelEventHandler::Pointer eventHandler);
 };
 
-}
-}
-}
-}
+}  // namespace av
+}  // namespace channel
+}  // namespace aasdk
+}  // namespace f1x

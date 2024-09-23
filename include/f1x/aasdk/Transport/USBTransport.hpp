@@ -22,21 +22,17 @@
 #include <f1x/aasdk/Transport/Transport.hpp>
 #include <f1x/aasdk/USB/IAOAPDevice.hpp>
 
-namespace f1x
-{
-namespace aasdk
-{
-namespace transport
-{
+namespace f1x {
+namespace aasdk {
+namespace transport {
 
-class USBTransport: public Transport
-{
-public:
-    USBTransport(boost::asio::io_service& ioService, usb::IAOAPDevice::Pointer aoapDevice);
+class USBTransport : public Transport {
+   public:
+    USBTransport(boost::asio::io_context& ioService, usb::IAOAPDevice::Pointer aoapDevice);
 
     void stop() override;
 
-private:
+   private:
     void enqueueReceive(common::DataBuffer buffer) override;
     void enqueueSend(SendQueue::iterator queueElement) override;
     void doSend(SendQueue::iterator queueElement, common::Data::size_type offset);
@@ -48,6 +44,6 @@ private:
     static constexpr uint32_t cReceiveTimeoutMs = 0;
 };
 
-}
-}
-}
+}  // namespace transport
+}  // namespace aasdk
+}  // namespace f1x

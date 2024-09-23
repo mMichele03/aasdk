@@ -21,42 +21,30 @@
 #include <boost/asio.hpp>
 #include <mutex>
 
-namespace f1x
-{
-namespace aasdk
-{
-namespace io
-{
+namespace f1x {
+namespace aasdk {
+namespace io {
 
-class IOContextWrapper
-{
-public:
+class IOContextWrapper {
+   public:
     IOContextWrapper();
-    explicit IOContextWrapper(boost::asio::io_service& ioService);
-    explicit IOContextWrapper(boost::asio::io_service::strand& strand);
+    explicit IOContextWrapper(boost::asio::io_context& ioService);
+    explicit IOContextWrapper(boost::asio::io_context::strand& strand);
 
-    template<typename CompletionHandlerType>
-    void post(CompletionHandlerType&& handler)
-    {
-        if(ioService_ != nullptr)
-        {
+    template <typename CompletionHandlerType>
+    void post(CompletionHandlerType&& handler) {
+        if (ioService_ != nullptr) {
             ioService_->post(std::move(handler));
-        }
-        else if(strand_ != nullptr)
-        {
+        } else if (strand_ != nullptr) {
             strand_->post(std::move(handler));
         }
     }
 
-    template<typename CompletionHandlerType>
-    void dispatch(CompletionHandlerType&& handler)
-    {
-        if(ioService_ != nullptr)
-        {
+    template <typename CompletionHandlerType>
+    void dispatch(CompletionHandlerType&& handler) {
+        if (ioService_ != nullptr) {
             ioService_->dispatch(std::move(handler));
-        }
-        else if(strand_ != nullptr)
-        {
+        } else if (strand_ != nullptr) {
             strand_->dispatch(std::move(handler));
         }
     }
@@ -64,11 +52,11 @@ public:
     void reset();
     bool isActive() const;
 
-private:
-    boost::asio::io_service* ioService_;
-    boost::asio::io_service::strand* strand_;
+   private:
+    boost::asio::io_context* ioService_;
+    boost::asio::io_context::strand* strand_;
 };
 
-}
-}
-}
+}  // namespace io
+}  // namespace aasdk
+}  // namespace f1x

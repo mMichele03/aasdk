@@ -16,33 +16,25 @@
 *  along with aasdk. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <f1x/aasdk/IO/PromiseLink.hpp>
 #include <f1x/aasdk/Channel/ServiceChannel.hpp>
+#include <f1x/aasdk/IO/PromiseLink.hpp>
 
-namespace f1x
-{
-namespace aasdk
-{
-namespace channel
-{
+namespace f1x {
+namespace aasdk {
+namespace channel {
 
-ServiceChannel::ServiceChannel(boost::asio::io_service::strand& strand,
+ServiceChannel::ServiceChannel(boost::asio::io_context::strand& strand,
                                messenger::IMessenger::Pointer messenger,
                                messenger::ChannelId channelId)
-    : strand_(strand)
-    , messenger_(std::move(messenger))
-    , channelId_(channelId)
-{
-
+    : strand_(strand), messenger_(std::move(messenger)), channelId_(channelId) {
 }
 
-void ServiceChannel::send(messenger::Message::Pointer message, SendPromise::Pointer promise)
-{
-    auto sendPromise = messenger::SendPromise::defer(strand_.get_io_service());
+void ServiceChannel::send(messenger::Message::Pointer message, SendPromise::Pointer promise) {
+    auto sendPromise = messenger::SendPromise::defer(strand_.context());
     io::PromiseLink<>::forward(*sendPromise, std::move(promise));
     messenger_->enqueueSend(std::move(message), std::move(sendPromise));
 }
 
-}
-}
-}
+}  // namespace channel
+}  // namespace aasdk
+}  // namespace f1x

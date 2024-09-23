@@ -17,39 +17,31 @@
 */
 
 #include <boost/test/unit_test.hpp>
-#include <f1x/aasdk/Transport/UT/Transport.mock.hpp>
+#include <f1x/aasdk/Messenger/MessageInStream.hpp>
+#include <f1x/aasdk/Messenger/Promise.hpp>
 #include <f1x/aasdk/Messenger/UT/Cryptor.mock.hpp>
 #include <f1x/aasdk/Messenger/UT/ReceivePromiseHandler.mock.hpp>
-#include <f1x/aasdk/Messenger/Promise.hpp>
-#include <f1x/aasdk/Messenger/MessageInStream.hpp>
+#include <f1x/aasdk/Transport/UT/Transport.mock.hpp>
 
-namespace f1x
-{
-namespace aasdk
-{
-namespace messenger
-{
-namespace ut
-{
+namespace f1x {
+namespace aasdk {
+namespace messenger {
+namespace ut {
 
 using ::testing::_;
+using ::testing::Return;
 using ::testing::SaveArg;
 using ::testing::SetArgReferee;
-using ::testing::Return;
 
-class MessageInStreamUnitTest
-{
-protected:
+class MessageInStreamUnitTest {
+   protected:
     MessageInStreamUnitTest()
-        : transport_(&transportMock_, [](auto*) {})
-        , cryptor_(&cryptorMock_, [](auto*) {})
-        , receivePromise_(ReceivePromise::defer(ioService_))
-    {
+        : transport_(&transportMock_, [](auto*) {}), cryptor_(&cryptorMock_, [](auto*) {}), receivePromise_(ReceivePromise::defer(ioService_)) {
         receivePromise_->then(std::bind(&ReceivePromiseHandlerMock::onResolve, &receivePromiseHandlerMock_, std::placeholders::_1),
-                             std::bind(&ReceivePromiseHandlerMock::onReject, &receivePromiseHandlerMock_, std::placeholders::_1));
+                              std::bind(&ReceivePromiseHandlerMock::onReject, &receivePromiseHandlerMock_, std::placeholders::_1));
     }
 
-    boost::asio::io_service ioService_;
+    boost::asio::io_context ioService_;
     transport::ut::TransportMock transportMock_;
     transport::ITransport::Pointer transport_;
     CryptorMock cryptorMock_;
@@ -58,14 +50,11 @@ protected:
     ReceivePromise::Pointer receivePromise_;
 };
 
-
-ACTION(ThrowSSLReadException)
-{
+ACTION(ThrowSSLReadException) {
     throw error::Error(error::ErrorCode::SSL_READ, 123);
 }
 
-BOOST_FIXTURE_TEST_CASE(MessageInStream_ReceivePlainMessage, MessageInStreamUnitTest)
-{
+BOOST_FIXTURE_TEST_CASE(MessageInStream_ReceivePlainMessage, MessageInStreamUnitTest) {
     MessageInStream::Pointer messageInStream(std::make_shared<MessageInStream>(ioService_, transport_, cryptor_));
 
     FrameHeader frameHeader(ChannelId::BLUETOOTH, FrameType::BULK, EncryptionType::PLAIN, MessageType::SPECIFIC);
@@ -108,8 +97,7 @@ BOOST_FIXTURE_TEST_CASE(MessageInStream_ReceivePlainMessage, MessageInStreamUnit
     BOOST_CHECK_EQUAL_COLLECTIONS(payload.begin(), payload.end(), framePayload.begin(), framePayload.end());
 }
 
-BOOST_FIXTURE_TEST_CASE(MessageInStream_ReceiveEncryptedMessage, MessageInStreamUnitTest)
-{
+BOOST_FIXTURE_TEST_CASE(MessageInStream_ReceiveEncryptedMessage, MessageInStreamUnitTest) {
     MessageInStream::Pointer messageInStream(std::make_shared<MessageInStream>(ioService_, transport_, cryptor_));
 
     FrameHeader frameHeader(ChannelId::VIDEO, FrameType::BULK, EncryptionType::ENCRYPTED, MessageType::CONTROL);
@@ -155,8 +143,7 @@ BOOST_FIXTURE_TEST_CASE(MessageInStream_ReceiveEncryptedMessage, MessageInStream
     BOOST_CHECK_EQUAL_COLLECTIONS(payload.begin(), payload.end(), decryptedPayload.begin(), decryptedPayload.end());
 }
 
-BOOST_FIXTURE_TEST_CASE(MessageInStream_MessageDecryptionFailed, MessageInStreamUnitTest)
-{
+BOOST_FIXTURE_TEST_CASE(MessageInStream_MessageDecryptionFailed, MessageInStreamUnitTest) {
     MessageInStream::Pointer messageInStream(std::make_shared<MessageInStream>(ioService_, transport_, cryptor_));
 
     FrameHeader frameHeader(ChannelId::VIDEO, FrameType::BULK, EncryptionType::ENCRYPTED, MessageType::CONTROL);
@@ -194,8 +181,7 @@ BOOST_FIXTURE_TEST_CASE(MessageInStream_MessageDecryptionFailed, MessageInStream
     ioService_.run();
 }
 
-BOOST_FIXTURE_TEST_CASE(MessageInStream_FramePayloadReceiveFailed, MessageInStreamUnitTest)
-{
+BOOST_FIXTURE_TEST_CASE(MessageInStream_FramePayloadReceiveFailed, MessageInStreamUnitTest) {
     MessageInStream::Pointer messageInStream(std::make_shared<MessageInStream>(ioService_, transport_, cryptor_));
 
     FrameHeader frameHeader(ChannelId::BLUETOOTH, FrameType::BULK, EncryptionType::PLAIN, MessageType::SPECIFIC);
@@ -231,8 +217,7 @@ BOOST_FIXTURE_TEST_CASE(MessageInStream_FramePayloadReceiveFailed, MessageInStre
     ioService_.run();
 }
 
-BOOST_FIXTURE_TEST_CASE(MessageInStream_FramePayloadSizeReceiveFailed, MessageInStreamUnitTest)
-{
+BOOST_FIXTURE_TEST_CASE(MessageInStream_FramePayloadSizeReceiveFailed, MessageInStreamUnitTest) {
     MessageInStream::Pointer messageInStream(std::make_shared<MessageInStream>(ioService_, transport_, cryptor_));
 
     FrameHeader frameHeader(ChannelId::BLUETOOTH, FrameType::BULK, EncryptionType::PLAIN, MessageType::SPECIFIC);
@@ -259,8 +244,7 @@ BOOST_FIXTURE_TEST_CASE(MessageInStream_FramePayloadSizeReceiveFailed, MessageIn
     ioService_.run();
 }
 
-BOOST_FIXTURE_TEST_CASE(MessageInStream_FrameHeaderReceiveFailed, MessageInStreamUnitTest)
-{
+BOOST_FIXTURE_TEST_CASE(MessageInStream_FrameHeaderReceiveFailed, MessageInStreamUnitTest) {
     MessageInStream::Pointer messageInStream(std::make_shared<MessageInStream>(ioService_, transport_, cryptor_));
 
     FrameHeader frameHeader(ChannelId::BLUETOOTH, FrameType::BULK, EncryptionType::PLAIN, MessageType::SPECIFIC);
@@ -280,8 +264,7 @@ BOOST_FIXTURE_TEST_CASE(MessageInStream_FrameHeaderReceiveFailed, MessageInStrea
     ioService_.run();
 }
 
-BOOST_FIXTURE_TEST_CASE(MessageInStream_ReceiveSplittedMessage, MessageInStreamUnitTest)
-{
+BOOST_FIXTURE_TEST_CASE(MessageInStream_ReceiveSplittedMessage, MessageInStreamUnitTest) {
     MessageInStream::Pointer messageInStream(std::make_shared<MessageInStream>(ioService_, transport_, cryptor_));
     FrameHeader frame1Header(ChannelId::BLUETOOTH, FrameType::FIRST, EncryptionType::PLAIN, MessageType::SPECIFIC);
 
@@ -350,8 +333,7 @@ BOOST_FIXTURE_TEST_CASE(MessageInStream_ReceiveSplittedMessage, MessageInStreamU
     BOOST_CHECK_EQUAL_COLLECTIONS(payload.begin(), payload.end(), expectedPayload.begin(), expectedPayload.end());
 }
 
-BOOST_FIXTURE_TEST_CASE(MessageInStream_IntertwinedChannels, MessageInStreamUnitTest)
-{
+BOOST_FIXTURE_TEST_CASE(MessageInStream_IntertwinedChannels, MessageInStreamUnitTest) {
     MessageInStream::Pointer messageInStream(std::make_shared<MessageInStream>(ioService_, transport_, cryptor_));
     FrameHeader frame1Header(ChannelId::BLUETOOTH, FrameType::FIRST, EncryptionType::PLAIN, MessageType::SPECIFIC);
 
@@ -395,8 +377,7 @@ BOOST_FIXTURE_TEST_CASE(MessageInStream_IntertwinedChannels, MessageInStreamUnit
     ioService_.run();
 }
 
-BOOST_FIXTURE_TEST_CASE(MessageInStream_RejectWhenInProgress, MessageInStreamUnitTest)
-{
+BOOST_FIXTURE_TEST_CASE(MessageInStream_RejectWhenInProgress, MessageInStreamUnitTest) {
     MessageInStream::Pointer messageInStream(std::make_shared<MessageInStream>(ioService_, transport_, cryptor_));
 
     FrameHeader frameHeader(ChannelId::BLUETOOTH, FrameType::BULK, EncryptionType::PLAIN, MessageType::SPECIFIC);
@@ -409,7 +390,7 @@ BOOST_FIXTURE_TEST_CASE(MessageInStream_RejectWhenInProgress, MessageInStreamUni
     auto secondReceivePromise = ReceivePromise::defer(ioService_);
 
     secondReceivePromise->then(std::bind(&ReceivePromiseHandlerMock::onResolve, &secondReceivePromiseHandlerMock, std::placeholders::_1),
-                              std::bind(&ReceivePromiseHandlerMock::onReject, &secondReceivePromiseHandlerMock, std::placeholders::_1));
+                               std::bind(&ReceivePromiseHandlerMock::onReject, &secondReceivePromiseHandlerMock, std::placeholders::_1));
 
     EXPECT_CALL(secondReceivePromiseHandlerMock, onReject(error::Error(error::ErrorCode::OPERATION_IN_PROGRESS)));
     EXPECT_CALL(secondReceivePromiseHandlerMock, onResolve(_)).Times(0);
@@ -417,8 +398,7 @@ BOOST_FIXTURE_TEST_CASE(MessageInStream_RejectWhenInProgress, MessageInStreamUni
     ioService_.run();
 }
 
-
-}
-}
-}
-}
+}  // namespace ut
+}  // namespace messenger
+}  // namespace aasdk
+}  // namespace f1x

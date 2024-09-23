@@ -17,37 +17,29 @@
 */
 
 #include <boost/test/unit_test.hpp>
-#include <f1x/aasdk/USB/UT/USBWrapper.mock.hpp>
-#include <f1x/aasdk/USB/UT/USBEndpoint.mock.hpp>
-#include <f1x/aasdk/USB/UT/AccessoryModeQueryPromiseHandler.mock.hpp>
 #include <f1x/aasdk/USB/AccessoryModeStartQuery.hpp>
+#include <f1x/aasdk/USB/UT/AccessoryModeQueryPromiseHandler.mock.hpp>
+#include <f1x/aasdk/USB/UT/USBEndpoint.mock.hpp>
+#include <f1x/aasdk/USB/UT/USBWrapper.mock.hpp>
 
-namespace f1x
-{
-namespace aasdk
-{
-namespace usb
-{
-namespace ut
-{
+namespace f1x {
+namespace aasdk {
+namespace usb {
+namespace ut {
 
 using ::testing::_;
-using ::testing::SaveArg;
 using ::testing::NotNull;
+using ::testing::SaveArg;
 
-class AccessoryModeStartQueryUnitTest
-{
-protected:
+class AccessoryModeStartQueryUnitTest {
+   protected:
     AccessoryModeStartQueryUnitTest()
-      : usbEndpointMock_(std::make_shared<USBEndpointMock>())
-      , usbEndpoint_(usbEndpointMock_.get(), [](auto*) {})
-      , promise_(IAccessoryModeQuery::Promise::defer(ioService_))
-    {
+        : usbEndpointMock_(std::make_shared<USBEndpointMock>()), usbEndpoint_(usbEndpointMock_.get(), [](auto*) {}), promise_(IAccessoryModeQuery::Promise::defer(ioService_)) {
         promise_->then(std::bind(&AccessoryModeQueryPromiseHandlerMock::onResolve, &promiseHandlerMock_, std::placeholders::_1),
-                      std::bind(&AccessoryModeQueryPromiseHandlerMock::onReject, &promiseHandlerMock_, std::placeholders::_1));
+                       std::bind(&AccessoryModeQueryPromiseHandlerMock::onReject, &promiseHandlerMock_, std::placeholders::_1));
     }
 
-    boost::asio::io_service ioService_;
+    boost::asio::io_context ioService_;
     USBWrapperMock usbWrapperMock_;
     std::shared_ptr<USBEndpointMock> usbEndpointMock_;
     IUSBEndpoint::Pointer usbEndpoint_;
@@ -58,8 +50,7 @@ protected:
     static constexpr uint32_t ACC_REQ_START = 53;
 };
 
-BOOST_FIXTURE_TEST_CASE(AccessoryModeStartQuery_Start, AccessoryModeStartQueryUnitTest)
-{
+BOOST_FIXTURE_TEST_CASE(AccessoryModeStartQuery_Start, AccessoryModeStartQueryUnitTest) {
     common::DataBuffer buffer;
     IUSBEndpoint::Promise::Pointer usbEndpointPromise;
     EXPECT_CALL(*usbEndpointMock_, controlTransfer(_, _, _)).WillOnce(DoAll(SaveArg<0>(&buffer), SaveArg<2>(&usbEndpointPromise)));
@@ -77,8 +68,7 @@ BOOST_FIXTURE_TEST_CASE(AccessoryModeStartQuery_Start, AccessoryModeStartQueryUn
     ioService_.run();
 }
 
-BOOST_FIXTURE_TEST_CASE(AccessoryModeStartQuery_TransferError, AccessoryModeStartQueryUnitTest)
-{
+BOOST_FIXTURE_TEST_CASE(AccessoryModeStartQuery_TransferError, AccessoryModeStartQueryUnitTest) {
     common::DataBuffer buffer;
     IUSBEndpoint::Promise::Pointer usbEndpointPromise;
     EXPECT_CALL(*usbEndpointMock_, controlTransfer(_, _, _)).WillOnce(DoAll(SaveArg<0>(&buffer), SaveArg<2>(&usbEndpointPromise)));
@@ -97,8 +87,7 @@ BOOST_FIXTURE_TEST_CASE(AccessoryModeStartQuery_TransferError, AccessoryModeStar
     ioService_.run();
 }
 
-BOOST_FIXTURE_TEST_CASE(AccessoryModeStartQuery_RejectWhenInProgress, AccessoryModeStartQueryUnitTest)
-{
+BOOST_FIXTURE_TEST_CASE(AccessoryModeStartQuery_RejectWhenInProgress, AccessoryModeStartQueryUnitTest) {
     common::DataBuffer buffer;
     IUSBEndpoint::Promise::Pointer usbEndpointPromise;
     EXPECT_CALL(*usbEndpointMock_, controlTransfer(_, _, _)).WillOnce(DoAll(SaveArg<0>(&buffer), SaveArg<2>(&usbEndpointPromise)));
@@ -112,7 +101,7 @@ BOOST_FIXTURE_TEST_CASE(AccessoryModeStartQuery_RejectWhenInProgress, AccessoryM
     AccessoryModeQueryPromiseHandlerMock secondPromiseHandlerMock;
     auto secondPromise = IAccessoryModeQuery::Promise::defer(ioService_);
     secondPromise->then(std::bind(&AccessoryModeQueryPromiseHandlerMock::onResolve, &secondPromiseHandlerMock, std::placeholders::_1),
-                       std::bind(&AccessoryModeQueryPromiseHandlerMock::onReject, &secondPromiseHandlerMock, std::placeholders::_1));
+                        std::bind(&AccessoryModeQueryPromiseHandlerMock::onReject, &secondPromiseHandlerMock, std::placeholders::_1));
 
     EXPECT_CALL(secondPromiseHandlerMock, onReject(error::Error(error::ErrorCode::OPERATION_IN_PROGRESS)));
     EXPECT_CALL(secondPromiseHandlerMock, onResolve(_)).Times(0);
@@ -120,7 +109,7 @@ BOOST_FIXTURE_TEST_CASE(AccessoryModeStartQuery_RejectWhenInProgress, AccessoryM
     ioService_.run();
 }
 
-}
-}
-}
-}
+}  // namespace ut
+}  // namespace usb
+}  // namespace aasdk
+}  // namespace f1x

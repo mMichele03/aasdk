@@ -17,39 +17,31 @@
 */
 
 #include <boost/test/unit_test.hpp>
-#include <f1x/aasdk/Transport/UT/Transport.mock.hpp>
+#include <f1x/aasdk/Messenger/MessageOutStream.hpp>
+#include <f1x/aasdk/Messenger/Promise.hpp>
 #include <f1x/aasdk/Messenger/UT/Cryptor.mock.hpp>
 #include <f1x/aasdk/Messenger/UT/SendPromiseHandler.mock.hpp>
-#include <f1x/aasdk/Messenger/Promise.hpp>
-#include <f1x/aasdk/Messenger/MessageOutStream.hpp>
+#include <f1x/aasdk/Transport/UT/Transport.mock.hpp>
 
-namespace f1x
-{
-namespace aasdk
-{
-namespace messenger
-{
-namespace ut
-{
+namespace f1x {
+namespace aasdk {
+namespace messenger {
+namespace ut {
 
 using ::testing::_;
+using ::testing::Return;
 using ::testing::SaveArg;
 using ::testing::SetArgReferee;
-using ::testing::Return;
 
-class MessageOutStreamUnitTest
-{
-protected:
+class MessageOutStreamUnitTest {
+   protected:
     MessageOutStreamUnitTest()
-        : transport_(&transportMock_, [](auto*) {})
-        , cryptor_(&cryptorMock_, [](auto*) {})
-        , sendPromise_(SendPromise::defer(ioService_))
-    {
+        : transport_(&transportMock_, [](auto*) {}), cryptor_(&cryptorMock_, [](auto*) {}), sendPromise_(SendPromise::defer(ioService_)) {
         sendPromise_->then(std::bind(&SendPromiseHandlerMock::onResolve, &sendPromiseHandlerMock_),
-                          std::bind(&SendPromiseHandlerMock::onReject, &sendPromiseHandlerMock_, std::placeholders::_1));
+                           std::bind(&SendPromiseHandlerMock::onReject, &sendPromiseHandlerMock_, std::placeholders::_1));
     }
 
-    boost::asio::io_service ioService_;
+    boost::asio::io_context ioService_;
     transport::ut::TransportMock transportMock_;
     transport::ITransport::Pointer transport_;
     CryptorMock cryptorMock_;
@@ -58,13 +50,11 @@ protected:
     SendPromise::Pointer sendPromise_;
 };
 
-ACTION(ThrowSSLWriteException)
-{
+ACTION(ThrowSSLWriteException) {
     throw error::Error(error::ErrorCode::SSL_WRITE, 32);
 }
 
-BOOST_FIXTURE_TEST_CASE(MessageOutStream_SendPlainMessage, MessageOutStreamUnitTest)
-{
+BOOST_FIXTURE_TEST_CASE(MessageOutStream_SendPlainMessage, MessageOutStreamUnitTest) {
     const FrameHeader frameHeader(ChannelId::INPUT, FrameType::BULK, EncryptionType::PLAIN, MessageType::CONTROL);
     const common::Data payload(1000, 0x5E);
     const FrameSize frameSize(payload.size());
@@ -93,8 +83,7 @@ BOOST_FIXTURE_TEST_CASE(MessageOutStream_SendPlainMessage, MessageOutStreamUnitT
     ioService_.run();
 }
 
-BOOST_FIXTURE_TEST_CASE(MessageOutStream_SendEncryptedMessage, MessageOutStreamUnitTest)
-{
+BOOST_FIXTURE_TEST_CASE(MessageOutStream_SendEncryptedMessage, MessageOutStreamUnitTest) {
     const FrameHeader frameHeader(ChannelId::VIDEO, FrameType::BULK, EncryptionType::ENCRYPTED, MessageType::CONTROL);
     const common::Data encryptedPayload(2000, 0x5F);
     const FrameSize frameSize(encryptedPayload.size());
@@ -127,8 +116,7 @@ BOOST_FIXTURE_TEST_CASE(MessageOutStream_SendEncryptedMessage, MessageOutStreamU
     ioService_.run();
 }
 
-BOOST_FIXTURE_TEST_CASE(MessageOutStream_MessageEncryptionFailed, MessageOutStreamUnitTest)
-{
+BOOST_FIXTURE_TEST_CASE(MessageOutStream_MessageEncryptionFailed, MessageOutStreamUnitTest) {
     Message::Pointer message(std::make_shared<Message>(ChannelId::VIDEO, EncryptionType::ENCRYPTED, MessageType::CONTROL));
     const common::Data payload(1000, 0x5E);
     message->insertPayload(payload);
@@ -142,8 +130,7 @@ BOOST_FIXTURE_TEST_CASE(MessageOutStream_MessageEncryptionFailed, MessageOutStre
     ioService_.run();
 }
 
-BOOST_FIXTURE_TEST_CASE(MessageOutStream_SendError, MessageOutStreamUnitTest)
-{
+BOOST_FIXTURE_TEST_CASE(MessageOutStream_SendError, MessageOutStreamUnitTest) {
     Message::Pointer message(std::make_shared<Message>(ChannelId::VIDEO, EncryptionType::PLAIN, MessageType::CONTROL));
     const common::Data payload(1000, 0x5E);
     message->insertPayload(payload);
@@ -164,8 +151,7 @@ BOOST_FIXTURE_TEST_CASE(MessageOutStream_SendError, MessageOutStreamUnitTest)
     ioService_.run();
 }
 
-BOOST_FIXTURE_TEST_CASE(MessageOutStream_SendSplittedMessage, MessageOutStreamUnitTest)
-{
+BOOST_FIXTURE_TEST_CASE(MessageOutStream_SendSplittedMessage, MessageOutStreamUnitTest) {
     const size_t maxFramePayloadSize = 0x4000;
 
     const common::Data frame1Payload(maxFramePayloadSize, 0x5E);
@@ -207,7 +193,7 @@ BOOST_FIXTURE_TEST_CASE(MessageOutStream_SendSplittedMessage, MessageOutStreamUn
     auto secondSendPromise = SendPromise::defer(ioService_);
     SendPromiseHandlerMock secondSendPromiseHandlerMock;
     secondSendPromise->then(std::bind(&SendPromiseHandlerMock::onResolve, &secondSendPromiseHandlerMock),
-                           std::bind(&SendPromiseHandlerMock::onReject, &secondSendPromiseHandlerMock, std::placeholders::_1));
+                            std::bind(&SendPromiseHandlerMock::onReject, &secondSendPromiseHandlerMock, std::placeholders::_1));
 
     EXPECT_CALL(secondSendPromiseHandlerMock, onResolve()).Times(0);
     EXPECT_CALL(secondSendPromiseHandlerMock, onReject(error::Error(error::ErrorCode::OPERATION_IN_PROGRESS)));
@@ -223,7 +209,7 @@ BOOST_FIXTURE_TEST_CASE(MessageOutStream_SendSplittedMessage, MessageOutStreamUn
     ioService_.run();
 }
 
-}
-}
-}
-}
+}  // namespace ut
+}  // namespace messenger
+}  // namespace aasdk
+}  // namespace f1x

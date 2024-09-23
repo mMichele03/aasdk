@@ -18,28 +18,25 @@
 
 #pragma once
 
-#include <boost/asio.hpp>
 #include <libusb.h>
-#include <list>
+
+#include <boost/asio.hpp>
+#include <f1x/aasdk/USB/IAccessoryModeQuery.hpp>
 #include <f1x/aasdk/USB/IUSBEndpoint.hpp>
 #include <f1x/aasdk/USB/IUSBWrapper.hpp>
-#include <f1x/aasdk/USB/IAccessoryModeQuery.hpp>
+#include <list>
 
-namespace f1x
-{
-namespace aasdk
-{
-namespace usb
-{
+namespace f1x {
+namespace aasdk {
+namespace usb {
 
-class AccessoryModeQuery: public IAccessoryModeQuery, boost::noncopyable
-{
-public:
-    AccessoryModeQuery(boost::asio::io_service& ioService, IUSBEndpoint::Pointer usbEndpoint);
+class AccessoryModeQuery : public IAccessoryModeQuery, boost::noncopyable {
+   public:
+    AccessoryModeQuery(boost::asio::io_context& ioService, IUSBEndpoint::Pointer usbEndpoint);
     void cancel() override;
 
-protected:
-    boost::asio::io_service::strand strand_;
+   protected:
+    boost::asio::io_context::strand strand_;
     IUSBEndpoint::Pointer usbEndpoint_;
     common::Data data_;
     Promise::Pointer promise_;
@@ -48,6 +45,6 @@ protected:
     static constexpr uint32_t USB_TYPE_VENDOR = 0x40;
 };
 
-}
-}
-}
+}  // namespace usb
+}  // namespace aasdk
+}  // namespace f1x

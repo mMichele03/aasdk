@@ -18,28 +18,24 @@
 
 #pragma once
 
+#include <boost/asio.hpp>
+#include <f1x/aasdk/Transport/DataSink.hpp>
+#include <f1x/aasdk/Transport/ITransport.hpp>
 #include <list>
 #include <queue>
-#include <boost/asio.hpp>
-#include <f1x/aasdk/Transport/ITransport.hpp>
-#include <f1x/aasdk/Transport/DataSink.hpp>
 
-namespace f1x
-{
-namespace aasdk
-{
-namespace transport
-{
+namespace f1x {
+namespace aasdk {
+namespace transport {
 
-class Transport: public ITransport, public std::enable_shared_from_this<Transport>, boost::noncopyable
-{
-public:
-    Transport(boost::asio::io_service& ioService);
+class Transport : public ITransport, public std::enable_shared_from_this<Transport>, boost::noncopyable {
+   public:
+    Transport(boost::asio::io_context& ioService);
 
     void receive(size_t size, ReceivePromise::Pointer promise) override;
     void send(common::Data data, SendPromise::Pointer promise) override;
 
-protected:
+   protected:
     typedef std::list<std::pair<size_t, ReceivePromise::Pointer>> ReceiveQueue;
     typedef std::list<std::pair<common::Data, SendPromise::Pointer>> SendQueue;
 
@@ -53,13 +49,13 @@ protected:
 
     DataSink receivedDataSink_;
 
-    boost::asio::io_service::strand receiveStrand_;
+    boost::asio::io_context::strand receiveStrand_;
     ReceiveQueue receiveQueue_;
 
-    boost::asio::io_service::strand sendStrand_;
+    boost::asio::io_context::strand sendStrand_;
     SendQueue sendQueue_;
 };
 
-}
-}
-}
+}  // namespace transport
+}  // namespace aasdk
+}  // namespace f1x
